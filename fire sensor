@@ -1,0 +1,43 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+
+#define DHTPIN 2
+#define DHTTYPE DHT22
+#define BUZZER_PIN 8
+
+DHT dht(DHTPIN, DHTTYPE);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.backlight();
+  lcd.print("Suhu Ruangan: ");
+  dht.begin();
+  pinMode(BUZZER_PIN, OUTPUT);
+}
+
+void loop() {
+  // Baca suhu
+  float temperature = dht.readTemperature();
+
+  // Periksa jika bacaan suhu gagal
+  if (isnan(temperature)) {
+    lcd.setCursor(0, 1);
+    lcd.print("Gagal membaca suhu");
+  } else {
+    // Tampilkan suhu di LCD
+    lcd.setCursor(0, 1);
+    lcd.print(temperature);
+    lcd.print(" C");
+
+    // Periksa jika suhu di atas 60 derajat
+    if (temperature > 60) {
+      tone(BUZZER_PIN, 1000); // Frekuensi 1000 Hz, Anda dapat menyesuaikan sesuai keinginan
+      delay(250); // Bunyi buzzer selama 1 detik
+      noTone(BUZZER_PIN); // Mematikan buzzer setelah 1 detik
+    }
+  }
+
+  delay(2000); // Tunggu 2 detik sebelum membaca suhu selanjutnya
+}
