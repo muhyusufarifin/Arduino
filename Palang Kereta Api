@@ -1,0 +1,76 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+const int buttonPin1 = 2; // Pin for button 1
+const int buttonPin2 = 4; // Pin for button 2
+const int ledPin1 = 8;    // Pin for LED 1
+const int ledPin2 = 9;    // Pin for LED 2
+const int buzzerPin = 10; // Pin for buzzer
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+bool isActive = false;
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.backlight();
+
+  pinMode(buttonPin1, INPUT);
+  pinMode(buttonPin2, INPUT);
+  pinMode(ledPin1, OUTPUT);
+  pinMode(ledPin2, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+}
+
+void loop() {
+  if (digitalRead(buttonPin1) == HIGH && !isActive) {
+    activateCode("AWAS KERETA", "DARI KANAN", ledPin1, ledPin2, buzzerPin, 1000);
+  } else if (digitalRead(buttonPin2) == HIGH && !isActive) {
+    activateCode("AWAS KERETA", " DARI KIRI", ledPin1, ledPin2, buzzerPin, 1000);
+  } else if (digitalRead(buttonPin1) == HIGH && isActive) {
+    stopCode();
+  } else if (digitalRead(buttonPin2) == HIGH && isActive) {
+    stopCode();
+  }
+}
+
+void activateCode(const char* line1, const char* line2, int pin1, int pin2, int buzzer, int duration) {
+  isActive = true;
+
+  lcd.setCursor(2, 0);
+  lcd.print(line1);
+  alternateLED(pin1, pin2, buzzer, duration);
+  
+  lcd.setCursor(2, 1);
+  lcd.print(line2);
+  alternateLED(pin1, pin2, buzzer, duration);
+  clearDisplay();
+
+  isActive = false;
+}
+
+void stopCode() {
+  clearDisplay();
+  digitalWrite(ledPin1, LOW);
+  digitalWrite(ledPin2, LOW);
+  noTone(buzzerPin);
+  delay(1000);
+}
+
+void clearDisplay() {
+  lcd.clear();
+}
+
+void alternateLED(int pin1, int pin2, int buzzer, int duration) {
+  digitalWrite(pin1, HIGH);
+  tone(buzzer, 294); // Frequency for LED 1
+  delay(duration);
+  digitalWrite(pin1, LOW);
+  noTone(buzzer);
+
+  digitalWrite(pin2, HIGH);
+  tone(buzzer, 330); // Frequency for LED 2
+  delay(duration);
+  digitalWrite(pin2, LOW);
+  noTone(buzzer);
+}
